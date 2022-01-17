@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+# https://trac.ffmpeg.org/wiki/Concatenate
+
+tracks="Eph-ch1-15-16 Eph-ch1-17-18 Eph-ch1-19-20 Eph-ch1-21-23"
+#tracks="Eph-ch1-15-16"
+
+WPM="${WPM:=160}"
+REPEAT=20
+TYPE=repeat
+FADE=10
+BG=lofi
+#$BG=trap
+
+tracks=$@
+
+mkdir out
+cd out
+
+for track in $tracks; do
+  say -v Karen -r $WPM -f ../"$track" -o $track.aiff
+
+  # Add 2s silence to start of the track
+  ffmpeg -i $track.aiff -af "adelay=2s:all=true" $track.wav
+  rm $track.aiff
+
+  for i in $(seq 1 $REPEAT); do
+    cp $track.wav $track-$i.wav
+  done
+  rm $track.wav
+
+  # Add silence to end of last track
+  ffmpeg -i $track-$REPEAT -af "apad=pad_dur=$FADE" out.wav
+  mv out.wav $track-$REPEAT
+
+  echo Contacting files
+  ffmpeg -y -f concat -safe 0 -i <(for f in ./$track-*.wav; do echo "file '$PWD/$f'"; done) -c copy $track-concat.wav
+  ffmpeg -y -i $track-concat.wav $track-concat.m4a
+  rm *.wav
+
+  echo Merging with background audio
+  ffmpeg -y -i $track-concat.m4a -i ../var/input/$BG.m4a -filter_complex amix=inputs=2:duration=shortest $track.m4a
+
+  echo Adding fade out
+  track_len=$(ffprobe -i $track.m4a -show_entries format=duration -v quiet -of csv="p=0")
+  track_len=${track_len%.*}
+  fade_start=$(( $track_len-$FADE))
+
+  ffmpeg -i $track.m4a -af "afade=t=out:st=$fade_start:d=$FADE" out.m4a
+  mv out.m4a $track.m4a
+  rm *-concat.m4a
+done
