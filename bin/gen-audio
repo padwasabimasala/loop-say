@@ -9,6 +9,7 @@ REPEAT=20
 TYPE=repeat
 FADE=10
 BG=lofi
+#BG=progrock
 ADELAY=500ms
 #$BG=trap
 
@@ -30,7 +31,7 @@ for track in $tracks; do
   rm $track.wav
 
   # Add silence to end of last track
-  ffmpeg -i $track-$REPEAT -af "apad=pad_dur=$FADE" out.wav
+  ffmpeg -i $track-$REPEAT.wav -af "apad=pad_dur=$FADE" out.wav
   mv out.wav $track-$REPEAT
 
   echo Contacting files
@@ -49,4 +50,6 @@ for track in $tracks; do
   ffmpeg -i $track.m4a -af "afade=t=out:st=$fade_start:d=$FADE" out.m4a
   mv out.m4a $track.m4a
   rm *-concat.m4a
+
+  id3tag --artist 'Calvary Bible Memory Club' --album 'Ephesians Bible Memory Tracks' --song $track $track.m4a
 done
