@@ -14,8 +14,8 @@ ADELAY=500ms
 #$BG=trap
 
 tracks=$@
-
-mkdir out
+ 
+mkdir -p out
 cd out
 
 for track in $tracks; do
