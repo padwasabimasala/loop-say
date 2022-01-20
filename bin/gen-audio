@@ -9,6 +9,7 @@ REPEAT=20
 TYPE=repeat
 FADE=10
 BG=lofi
+ADELAY=500ms
 #$BG=trap
 
 tracks=$@
@@ -20,7 +21,7 @@ for track in $tracks; do
   say -v Karen -r $WPM -f ../"$track" -o $track.aiff
 
   # Add 2s silence to start of the track
-  ffmpeg -i $track.aiff -af "adelay=2s:all=true" $track.wav
+  ffmpeg -i $track.aiff -af "adelay=${ADELAY}:all=true" $track.wav
   rm $track.aiff
 
   for i in $(seq 1 $REPEAT); do
