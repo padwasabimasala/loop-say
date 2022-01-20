@@ -19,6 +19,8 @@ mkdir -p out
 cd out
 
 for track in $tracks; do
+  text=$track
+  track=${track%.*}
   say -v Karen -r $WPM -f ../"$track" -o $track.aiff
 
   # Add 2s silence to start of the track
@@ -32,7 +34,7 @@ for track in $tracks; do
 
   # Add silence to end of last track
   ffmpeg -i $track-$REPEAT.wav -af "apad=pad_dur=$FADE" out.wav
-  mv out.wav $track-$REPEAT
+  mv out.wav $track-$REPEAT.wav
 
   echo Contacting files
   ffmpeg -y -f concat -safe 0 -i <(for f in ./$track-*.wav; do echo "file '$PWD/$f'"; done) -c copy $track-concat.wav
@@ -51,5 +53,5 @@ for track in $tracks; do
   mv out.m4a $track.m4a
   rm *-concat.m4a
 
-  id3tag --artist 'Calvary Bible Memory Club' --album 'Ephesians Bible Memory Tracks' --song $track $track.m4a
+  #id3tag --artist 'Calvary Bible Memory Club' --album 'Ephesians Bible Memory Tracks' --song $track $track.m4a
 done
