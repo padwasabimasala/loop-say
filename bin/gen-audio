@@ -4,14 +4,13 @@
 tracks="Eph-ch1-15-16 Eph-ch1-17-18 Eph-ch1-19-20 Eph-ch1-21-23"
 #tracks="Eph-ch1-15-16"
 
-WPM="${WPM:=160}"
-REPEAT=20
-TYPE=repeat
-FADE=10
-BG=lofi
+WPM="${WPM:=150}"
+REPEAT="${REPEAT:=20}"
+FADE="${FADE:=10}"
+BG="${BG:=lofi}"
 #BG=progrock
-ADELAY=500ms
 #$BG=trap
+SPACINGMS="${SPACINGMS:=500}"
 
 tracks=$@
  
@@ -24,10 +23,10 @@ for track in $tracks; do
   say -v Karen -r $WPM -f ../"$track" -o $track.aiff
 
   # Add 2s silence to start of the track
-  ffmpeg -i $track.aiff -af "adelay=${ADELAY}:all=true" $track.wav
+  ffmpeg -i $track.aiff -af "adelay=${SPACINGMS}ms:all=true" $track.wav
   rm $track.aiff
 
-  for i in $(seq 1 $REPEAT); do
+  for i in $(seq -s " " -w 01 $REPEAT); do
     cp $track.wav $track-$i.wav
   done
   rm $track.wav
@@ -42,16 +41,25 @@ for track in $tracks; do
   rm *.wav
 
   echo Merging with background audio
-  ffmpeg -y -i $track-concat.m4a -i ../var/input/$BG.m4a -filter_complex amix=inputs=2:duration=shortest $track.m4a
+  ffmpeg -y -i $track-concat.m4a -i ../var/input/$BG.m4a -filter_complex amix=inputs=2:duration=shortest merge.m4a
 
   echo Adding fade out
-  track_len=$(ffprobe -i $track.m4a -show_entries format=duration -v quiet -of csv="p=0")
+  track_len=$(ffprobe -i merge.m4a -show_entries format=duration -v quiet -of csv="p=0")
   track_len=${track_len%.*}
   fade_start=$(( $track_len-$FADE))
 
-  ffmpeg -i $track.m4a -af "afade=t=out:st=$fade_start:d=$FADE" out.m4a
-  mv out.m4a $track.m4a
+  ffmpeg -i merge.m4a -af "afade=t=out:st=$fade_start:d=$FADE" fade.m4a
+  mv fade.m4a $track.m4a
+  rm merge.m4a
   rm *-concat.m4a
+
+  # Figure out compression and switch and get id3tags working without breaking the file
+  # https://trac.ffmpeg.org/wiki/Encode/MP3
+  # https://williamyaps.blogspot.com/2016/12/i-success-with-this-command-ffmpeg-i.html
+  #  ffmpeg -i inputfile.mp3 -acodec libmp3lame -b:a 8k -ac 1 -ar 11025 outputfile.mp3 
+
+  # See https://github.com/Martchus/tageditor (no brew install)
+
 
   #id3tag --artist 'Calvary Bible Memory Club' --album 'Ephesians Bible Memory Tracks' --song $track $track.m4a
 done
