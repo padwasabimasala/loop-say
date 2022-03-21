@@ -2,7 +2,7 @@
 # https://trac.ffmpeg.org/wiki/Concatenate
 
 WPM="${WPM:=150}"
-REPEAT="${REPEAT:=20}"
+REPEAT="${REPEAT:=12}"
 FADE="${FADE:=10}"
 BG="${BG:=lofi}"
 #BG=progrock
@@ -13,6 +13,10 @@ tracks=$@
  
 mkdir -p out
 cd out
+
+tracklen=
+ffprobe -i "$1" -show_entries format=duration -v quiet -of csv="p=0"
+
 
 for track in $tracks; do
   text=$track

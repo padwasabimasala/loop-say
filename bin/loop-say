@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+
+# 140 pretty chill, 180 pretty quick
+WPM="${WPM:=160}"
+REPEAT=2
+TYPE=repeat
+
+trap exit SIGINT SIGTERM
+
+
+function sequential() { 
+  while true; do 
+    for i in {1..$REPEAT}; do
+      for f in $@; do 
+        say -v Karen -r $WPM -f "$f"
+      done
+    done
+  done
+}
+
+function repeat() { 
+  while true; do 
+    for f in $@; do 
+      for i in {1..$REPEAT}; do
+        say -v Karen -r $WPM -f "$f"
+      done
+    done
+  done
+}
+
+eval $TYPE $@
