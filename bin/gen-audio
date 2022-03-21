@@ -14,10 +14,6 @@ tracks=$@
 mkdir -p out
 cd out
 
-tracklen=
-ffprobe -i "$1" -show_entries format=duration -v quiet -of csv="p=0"
-
-
 for track in $tracks; do
   text=$track
   track=${track%.*}
