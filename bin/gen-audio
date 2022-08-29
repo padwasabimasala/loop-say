@@ -5,9 +5,13 @@ WPM="${WPM:=150}"
 REPEAT="${REPEAT:=12}"
 FADE="${FADE:=10}"
 BG="${BG:=lofi}"
+VOICE="${VOICE:=Karen}"
 #BG=progrock
 #$BG=trap
 SPACINGMS="${SPACINGMS:=500}"
+ARTIST="${ARTIST:=Calvary Bible Memory Club}"
+ALBUM="${ALBUM:=Ephesians}"
+ARTWORK="${ARTWORK:=../var/ephesians.jpg}"
 
 tracks=$@
  
@@ -17,7 +21,7 @@ cd out
 for track in $tracks; do
   text=$track
   track=${track%.*}
-  say -v Karen -r $WPM -f ../"$track" -o $track.aiff
+  say -v ${VOICE} -r $WPM -f ../"$track" -o $track.aiff
 
   # Add 2s silence to start of the track
   ffmpeg -i $track.aiff -af "adelay=${SPACINGMS}ms:all=true" $track.wav
@@ -56,6 +60,6 @@ for track in $tracks; do
   #  ffmpeg -i inputfile.mp3 -acodec libmp3lame -b:a 8k -ac 1 -ar 11025 outputfile.mp3 
 
   # See https://github.com/Martchus/tageditor (no brew install)
-  AtomicParsley $track.m4a --artist "Calvary Bible Memory Club" --album 'Ephesians Bible Memory Tracks' --title $track --artwork ../var/ephesians.jpg
+  AtomicParsley $track.m4a --artist ${ARTIST} --album ${TITLE} --title $track --artwork ${ARTWORK}
   mv $track-temp*.m4a $track.m4a
 done
