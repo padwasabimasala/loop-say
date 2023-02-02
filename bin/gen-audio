@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # https://trac.ffmpeg.org/wiki/Concatenate
 
-WPM="${WPM:=150}"
-REPEAT="${REPEAT:=12}"
+WPM="${WPM:=170}"
+REPEAT="${REPEAT:=3}"
 FADE="${FADE:=10}"
 BG="${BG:=lofi}"
 VOICE="${VOICE:=Karen}"
@@ -10,8 +10,8 @@ VOICE="${VOICE:=Karen}"
 #$BG=trap
 SPACINGMS="${SPACINGMS:=500}"
 ARTIST="${ARTIST:=Calvary Bible Memory Club}"
-ALBUM="${ALBUM:=Ephesians}"
-ARTWORK="${ARTWORK:=../var/ephesians.jpg}"
+ALBUM_TITLE="${ALBUM:=Phillipians}"
+ARTWORK="${ARTWORK:=../var/phil.png}"
 
 tracks=$@
  
@@ -20,7 +20,10 @@ cd out
 
 for track in $tracks; do
   text=$track
+  echo text:$track
   track=${track%.*}
+  echo track:$track
+
   say -v ${VOICE} -r $WPM -f ../"$track" -o $track.aiff
 
   # Add 2s silence to start of the track
@@ -60,6 +63,6 @@ for track in $tracks; do
   #  ffmpeg -i inputfile.mp3 -acodec libmp3lame -b:a 8k -ac 1 -ar 11025 outputfile.mp3 
 
   # See https://github.com/Martchus/tageditor (no brew install)
-  AtomicParsley $track.m4a --artist ${ARTIST} --album ${TITLE} --title $track --artwork ${ARTWORK}
+  AtomicParsley $track.m4a --artist "${ARTIST}" --album "${ALBUM_TITLE}" --title "$track" --artwork "${ARTWORK}" --year 2023
   mv $track-temp*.m4a $track.m4a
 done
