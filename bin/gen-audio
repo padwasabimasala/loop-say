@@ -1,17 +1,19 @@
 #!/usr/bin/env bash
 # https://trac.ffmpeg.org/wiki/Concatenate
+set -euo pipefail
 
-WPM="${WPM:=170}"
-REPEAT="${REPEAT:=3}"
+WPM="${WPM:=125}"
+# Use leading zeros for repeats 1-9
+REPEAT="${REPEAT:=30}"
 FADE="${FADE:=10}"
-BG="${BG:=lofi}"
+BG="${BG:=../var/lofi.m4a}"
 VOICE="${VOICE:=Karen}"
 #BG=progrock
 #$BG=trap
-SPACINGMS="${SPACINGMS:=500}"
+SPACINGMS="${SPACINGMS:=750}"
 ARTIST="${ARTIST:=Calvary Bible Memory Club}"
-ALBUM_TITLE="${ALBUM:=Phillipians}"
-ARTWORK="${ARTWORK:=../var/phil.png}"
+ALBUM_TITLE="${ALBUM:=The Sermon on the Mount - NLT}"
+ARTWORK="${ARTWORK:=../var/cover.png}"
 
 tracks=$@
  
@@ -24,12 +26,15 @@ for track in $tracks; do
   track=${track%.*}
   echo track:$track
 
+  echo "Generating voice text with say"
   say -v ${VOICE} -r $WPM -f ../"$track" -o $track.aiff
 
   # Add 2s silence to start of the track
+  echo "Adding silence to track start"
   ffmpeg -i $track.aiff -af "adelay=${SPACINGMS}ms:all=true" $track.wav
   rm $track.aiff
 
+  echo generating repeat
   for i in $(seq -s " " -w 01 $REPEAT); do
     cp $track.wav $track-$i.wav
   done
@@ -45,7 +50,15 @@ for track in $tracks; do
   rm *.wav
 
   echo Merging with background audio
-  ffmpeg -y -i $track-concat.m4a -i ../var/input/$BG.m4a -filter_complex amix=inputs=2:duration=shortest merge.m4a
+  ffmpeg -i $track-concat.m4a -i $BG \
+    -filter_complex "[0:a][1:a]amix=inputs=2:duration=first:dropout_transition=0[a]" \
+    -map "[a]" -c:a aac -shortest merge.m4a
+  
+  # Make the length of the new file correct
+  length=$(ffprobe -i $track-concat.m4a -show_entries format=duration -v quiet -of csv="p=0")
+  echo length $length
+  ffmpeg -i merge.m4a -t $length -c copy merge-trim.m4a
+  cp merge-trim.m4a merge.m4a
 
   echo Adding fade out
   track_len=$(ffprobe -i merge.m4a -show_entries format=duration -v quiet -of csv="p=0")
@@ -55,14 +68,10 @@ for track in $tracks; do
   ffmpeg -i merge.m4a -af "afade=t=out:st=$fade_start:d=$FADE" fade.m4a
   mv fade.m4a $track.m4a
   rm merge.m4a
+  rm merge-trim.m4a
   rm *-concat.m4a
 
-  # Figure out compression and switch and get id3tags working without breaking the file
-  # https://trac.ffmpeg.org/wiki/Encode/MP3
-  # https://williamyaps.blogspot.com/2016/12/i-success-with-this-command-ffmpeg-i.html
-  #  ffmpeg -i inputfile.mp3 -acodec libmp3lame -b:a 8k -ac 1 -ar 11025 outputfile.mp3 
-
-  # See https://github.com/Martchus/tageditor (no brew install)
+  # brew install atomic parsley
   AtomicParsley $track.m4a --artist "${ARTIST}" --album "${ALBUM_TITLE}" --title "$track" --artwork "${ARTWORK}" --year 2023
   mv $track-temp*.m4a $track.m4a
 done
