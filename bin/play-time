@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# print the play time of an mp3 in minutes
+
+echo $(ffprobe -i "$1" -show_entries format=duration -v quiet -of csv="p=0" | awk '{print int($1/60)":"int($1%60)}') mins
+
