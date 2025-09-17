@@ -1,0 +1,34 @@
+#!/bin/bash
+# concat_all_mp3s.sh -> Concatenate all MP3s in current dir with fades
+
+# Get sorted list of mp3 files
+files=( *.mp3 )
+count=${#files[@]}
+
+if [ "$count" -lt 2 ]; then
+  echo "Need at least 2 MP3 files"
+  exit 1
+fi
+
+# Build filter graph dynamically
+filter=""
+for ((i=0; i < count-1; i++)); do
+  if [ $i -eq 0 ]; then
+    filter="[0:a][1:a]acrossfade=d=3:c1=tri:c2=tri[a1];"
+  else
+    filter+="[a${i}][$(($i+1)):a]acrossfade=d=3:c1=tri:c2=tri[a$(($i+1))];"
+  fi
+done
+
+# Remove trailing semicolon
+filter=${filter%;}
+
+# Build ffmpeg command
+cmd=( ffmpeg )
+for f in "${files[@]}"; do
+  cmd+=( -i "$f" )
+done
+cmd+=( -filter_complex "$filter" -map "[a$((count-1))]" -c:a libmp3lame -q:a 2 output.mp3 )
+
+# Run it
+"${cmd[@]}"
