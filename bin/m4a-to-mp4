@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+ffmpeg -loop 1 -i var/cover.png -i "$1" \
+  -vf "drawtext=text='Bible Memory Club | Matthew 5':fontcolor=white:fontsize=48:x=(w-text_w)/2:y=h-100" \
+  -metadata title="Bible Memory Club | Matthew 5" -metadata description="Media to help you memorize the word of God" \
+  -c:v libx264 -tune stillimage -c:a aac -b:a 192k -shortest -pix_fmt yuv420p "${1%.*}.mp4"

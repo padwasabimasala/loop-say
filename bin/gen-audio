@@ -2,7 +2,7 @@
 # https://trac.ffmpeg.org/wiki/Concatenate
 set -euo pipefail
 
-WPM="${WPM:=125}"
+WPM="${WPM:=110}" # 125 is a bit fast for the first time memorizing a section
 # Use leading zeros for repeats 1-9
 REPEAT="${REPEAT:=30}"
 FADE="${FADE:=10}"
