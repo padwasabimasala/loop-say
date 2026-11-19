@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+[[ $# -eq 1 ]] || { echo "Usage: bin/trim input.mp4" >&2; exit 1; }
+
+input=$1
+output="${input%.mp4}-trim.mp4"
+
+[[ -f "$input" ]] || { echo "Input file not found: $input" >&2; exit 1; }
+
+ffmpeg -i "$input" -t 1800 -c:v copy -af 'afade=t=out:st=1797:d=3' -c:a aac -n "$output"
