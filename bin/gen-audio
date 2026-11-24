@@ -6,7 +6,7 @@ WPM="${WPM:=110}" # 125 is a bit fast for the first time memorizing a section
 # Use leading zeros for repeats 1-9
 REPEAT="${REPEAT:=30}"
 FADE="${FADE:=10}"
-BG="${BG:=../var/lofi.m4a}"
+BG="${BG:=../var/audio-tracks/cutie-japan-lofi-402355.mp3}"
 VOICE="${VOICE:=Karen}"
 #BG=progrock
 #$BG=trap

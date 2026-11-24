@@ -1,1 +1,3 @@
 bin/ffmpeg
+.youtube-oauth-client.json
+.youtube-upload-token.json
